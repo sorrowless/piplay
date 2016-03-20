@@ -1,11 +1,11 @@
 import daemon
 import socket, select
 import logging
-from piplay import requests, manager
+from piplay import requests, manager, config
 
 logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s %(name)-30s %(levelname)-9s %(message)s')
+    level=config.LOGLEVEL,
+    format=config.LOGFORMAT)
 
 
 class Server:
@@ -38,6 +38,7 @@ class Server:
                 events = epoll.poll(1)
                 for fileno, event in events:
                     if fileno == self._socket.fileno():
+                        self.logger.debug('New connection recieved')
                         clientconn, address = self._socket.accept()
                         clientconn.setblocking(0)
                         epoll.register(clientconn.fileno(), select.EPOLLIN)
@@ -57,13 +58,15 @@ class Server:
                             epoll.unregister(self._socket.fileno())
                             epoll.close()
                             break
-                        elif request[:4] == requests.PLAY:
-                            self.logger.info('Process play request')
-                            self._manager = manager.Manager(request)
-                            self._manager.process()
-                            self._manager.play()
+                        elif request[:4] in [requests.PLAY, requests.STOP, requests.NEXT, requests.PREVIOUS,
+                                             requests.LIST]:
+                            self.logger.info('Process %s request', request[:4])
+                            self._manager = manager.Manager() if not self._manager else self._manager
+                            self._manager.process(request)
                             reqlist[fileno] = b''
-                            pass
+                        else:
+                            self.logger.info('Unknown request, pass')
+                            reqlist[fileno] = b''
         except ValueError:
             self.logger.info('You try to epoll on closed epoll object. Was server ran in a thread?')
         finally:

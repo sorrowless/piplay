@@ -7,13 +7,14 @@ MarkupSafe==0.23
 pecan==1.0.5
 pluggy==0.3.1
 py==1.4.31
-pydub==0.16.3
 PyHamcrest==1.9.0
 python-daemon==2.1.1
 python-vlc==1.1.2
+requests==2.9.1
 six==1.10.0
 tox==2.3.1
 virtualenv==15.0.0
+vk==2.0.2
 waitress==0.8.10
 WebOb==1.6.0
 WebTest==2.0.20

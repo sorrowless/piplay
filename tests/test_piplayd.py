@@ -2,11 +2,10 @@ import pytest
 import socket
 import threading
 import time
+from piplay import piplayd
 from piplay import manager
 from unittest.mock import patch
 from hamcrest import *
-
-from piplay import piplayd
 
 
 class TestServer:

@@ -1,2 +1,6 @@
 CLOSE = 'close'
 PLAY = 'play'
+STOP = 'stop'
+NEXT = 'next'
+LIST = 'list'
+PREVIOUS = 'prev'
