@@ -43,7 +43,7 @@ class TestServer:
         conn = socket.socket()
         conn.connect(server.address)
 
-        conn.send(bytes('play\n\n', 'utf-8'))
+        conn.send(bytes('play Сплин - Выхода нет\n\n', 'utf-8'))
         conn.send(b'close\n\n')
         conn.close()
 
