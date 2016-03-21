@@ -1,6 +1,5 @@
 import logging
-import vlc
-from piplay import requests, config
+from piplay import requests, config, player
 
 logging.basicConfig(
     level=config.LOGLEVEL,
@@ -39,6 +38,8 @@ class Manager:
                 self.logger.debug('Try %s', storage.__name__)
                 self._cachepaths = storage.search(self.rbody)
                 if self._cachepaths:
+                    self.logger.info('Saved %s entries from %s storage to cache',
+                                     len(self._cachepaths), storage.__name__)
                     break
 
     def play(self):
@@ -47,12 +48,16 @@ class Manager:
             newpath = self._cachepaths.pop(0)
         except IndexError:
             self.fillCache()
-            newpath = self._cachepaths.pop(0)
+            if self._cachepaths:
+                newpath = self._cachepaths.pop(0)
+            else:
+                self.logger.error("Can't fill cache from any storage. Sorry, we can't anything to process then")
+                return 1
         if not self.player:
             self.logger.debug('Initialize new player')
-            self.player = vlc.MediaPlayer(newpath['url'])
+            self.player = player.Player(newpath['url'])
         else:
-            self.player.set_mrl(newpath['url'])
+            self.player.set_path(newpath['url'])
         self.logger.debug('Send "%s - %s" to player', newpath['artist'], newpath['title'])
         self.player.play()
 
@@ -62,8 +67,9 @@ class Manager:
 
     def next(self):
         self.logger.debug('Send next to player')
-        self.stop()
-        self.play()
+        if self.player:
+            self.stop()
+            self.play()
 
     def list(self):
         self.logger.debug('List of play queue from cache:')
