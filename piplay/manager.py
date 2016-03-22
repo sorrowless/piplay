@@ -1,23 +1,31 @@
 import logging
-from piplay import requests, config, player
+from piplay import requests, player
+from piplay.config import logging as plog
+from piplay.config import storage as pstor
 
 logging.basicConfig(
-    level=config.LOGLEVEL,
-    format=config.LOGFORMAT,
-    filename='/tmp/spam.log')
+    level=plog.LOGLEVEL,
+    format=plog.LOGFORMAT,
+    filename=plog.FILENAME)
 
 
 class Manager:
+    """Manage incoming requests - strip them and process"""
     def __init__(self, request=None):
+        """Constructor
+
+        :param request: Request to process
+        """
         self._cachepaths = []
         self.logger = logging.getLogger(__name__)
         self.request = request
         self.rtype = None
         self.rbody = None
         self.player = None
-        self.storages = [storage for storage in config.STORAGES]
+        self.storages = [storage for storage in pstor.STORAGES]
 
     def _strip_request(self):
+        """Split request to type and body"""
         if self.request[:4] == requests.PLAY:
             self.rtype = requests.PLAY
             if self.request[4:] != self.rbody:
@@ -75,7 +83,7 @@ class Manager:
     def list(self):
         self.logger.debug('List of play queue from cache:')
         for row in self._cachepaths:
-            self.logger.debug('%s - %s', row['artist'], row['title'])
+            self.logger.info('%s - %s', row['artist'], row['title'])
         return self._cachepaths
 
     def process(self, request):

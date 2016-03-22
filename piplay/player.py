@@ -1,10 +1,12 @@
 import logging
 import vlc
-from piplay import config
+from piplay.config import logging as plog
 
 logging.basicConfig(
-    level=config.LOGLEVEL,
-    format=config.LOGFORMAT)
+    level=plog.LOGLEVEL,
+    format=plog.LOGFORMAT,
+    filename=plog.FILENAME
+    )
 
 
 class Player:

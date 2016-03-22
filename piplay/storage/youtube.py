@@ -1,24 +1,38 @@
 import configparser
 import logging
 import pafy
+import os
 from apiclient.discovery import build
+from piplay.config import logging as plog
 
 
 logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s %(name)-30s %(levelname)-9s %(message)s',
-    filename='/tmp/spam.log')
+    level=plog.LOGLEVEL,
+    format=plog.LOGFORMAT,
+    filename=plog.FILENAME)
 logger = logging.getLogger(__name__)
 logger.debug('YouTube storage connected')
 
 commonconfig = configparser.ConfigParser()
-commonconfig.read('config.ini')
+try:
+    with open(os.path.expanduser('~/.piplay/config'), 'r') as f:
+        commonconfig.read_file(f)
+except IOError:
+    logger.error("Config file for YouTube not found.")
+except:
+    logger.error("Unexpected error happened: %s", sys.exc_info())
+    sys.exit(1)
 
 try:
     scope = 'id,snippet'
     DEVELOPER_KEY = commonconfig['youtube']['app_key']
 except KeyError:
     logger.error("Can't load YouTube identify data. YouTube API won't be loaded")
+except:
+    import sys
+    logger.error("Unexpected error happened: %s", sys.exc_info())
+    sys.exit(1)
+
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
@@ -27,7 +41,7 @@ try:
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
         developerKey=DEVELOPER_KEY)
 except NameError:
-    logger.error("Can't create YouTube API call. Uninitialized API instance?")
+    logger.error("Can't create YouTube API instance")
 
 
 def youtube_search(query, max_results=4):
