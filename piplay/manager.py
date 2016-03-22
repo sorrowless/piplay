@@ -3,7 +3,8 @@ from piplay import requests, config, player
 
 logging.basicConfig(
     level=config.LOGLEVEL,
-    format=config.LOGFORMAT)
+    format=config.LOGFORMAT,
+    filename='/tmp/spam.log')
 
 
 class Manager:

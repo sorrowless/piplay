@@ -6,7 +6,8 @@ from apiclient.discovery import build
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s %(name)-30s %(levelname)-9s %(message)s')
+    format='%(asctime)s %(name)-30s %(levelname)-9s %(message)s',
+    filename='/tmp/spam.log')
 logger = logging.getLogger(__name__)
 logger.debug('YouTube storage connected')
 
@@ -64,7 +65,7 @@ def getAudiostream(videourl):
 
 def search(request):
     logger.info('Search %s in YouTube', request)
-    results = youtube_search(request, max_results=10)
+    results = youtube_search(request, max_results=4)
     logger.debug('Return found results:')
     res = []
 

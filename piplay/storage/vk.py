@@ -4,7 +4,8 @@ import vk
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s %(name)-30s %(levelname)-9s %(message)s')
+    format='%(asctime)s %(name)-30s %(levelname)-9s %(message)s',
+    filename='/tmp/spam.log')
 logger = logging.getLogger(__name__)
 logger.debug('VK storage connected')
 

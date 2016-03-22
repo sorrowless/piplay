@@ -43,7 +43,8 @@ class PiplayClient:
         loglevel = (5 - self.args['-v'])*10 if self.args['-v'] < 5 else 10
         logging.basicConfig(
                 level=logging.DEBUG,
-                format='%(asctime)s %(name)-30s %(levelname)-9s %(message)s')
+                format='%(asctime)s %(name)-30s %(levelname)-9s %(message)s',
+                filename='/tmp/spam.log')
         self.logger = logging.getLogger(__name__)
         self.logger.debug('Passed arguments is: ' + str(self.args))
 
@@ -58,15 +59,19 @@ class PiplayClient:
 
     def play(self, query=None):
         self.connection.send(bytes('play {query}\n\n'.format(query=query), 'utf-8'))
+        self.connection.close()
 
     def next(self):
         self.connection.send(bytes('next\n\n', 'utf-8'))
+        self.connection.close()
 
     def stop(self):
         self.connection.send(bytes('stop\n\n', 'utf-8'))
+        self.connection.close()
 
     def list(self):
         self.connection.send(bytes('list\n\n', 'utf-8'))
+        self.connection.close()
 
 
 if __name__ == "__main__":

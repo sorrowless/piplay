@@ -5,7 +5,9 @@ from piplay import requests, manager, config
 
 logging.basicConfig(
     level=config.LOGLEVEL,
-    format=config.LOGFORMAT)
+    format=config.LOGFORMAT,
+    filename='/tmp/spam.log'
+    )
 
 
 class Server:
@@ -47,7 +49,13 @@ class Server:
 
                     elif event and select.EPOLLIN:
                         while EOL not in reqlist[fileno]:
-                            reqlist[fileno] += connlist[fileno].recv(2)
+                            self.logger.debug('Got some new data from connection')
+                            reqlist[fileno] += connlist[fileno].recv(128)
+                            self.logger.debug('connection data is %s', reqlist[fileno].decode())
+                            if len(reqlist[fileno]) > 256 or not reqlist[fileno].decode():
+                                epoll.modify(fileno, 0)
+                                reqlist[fileno] = b''
+                                break
                         request = reqlist[fileno].decode()[:-2]
                         self.logger.debug('Got a request: %s', request)
                         if request[:5] == requests.CLOSE:
