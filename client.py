@@ -76,6 +76,21 @@ class PiplayClient:
         self.connection.send(bytes('play {query}\n\n'.format(query=query), 'utf-8'))
         self.connection.close()
 
+    def pause(self, query=None):
+        self.logger.debug('Sending pause to daemon')
+        self.connection.send(bytes('pause\n\n', 'utf-8'))
+        self.connection.close()
+
+    def resume(self, query=None):
+        self.logger.debug('Sending resume to daemon')
+        self.connection.send(bytes('resume\n\n', 'utf-8'))
+        self.connection.close()
+
+    def retry(self, query=None):
+        self.logger.debug('Sending retry to daemon')
+        self.connection.send(bytes('retry\n\n', 'utf-8'))
+        self.connection.close()
+
     def next(self):
         self.logger.debug('Sending next to daemon')
         self.connection.send(bytes('next\n\n', 'utf-8'))

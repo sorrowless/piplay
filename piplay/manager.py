@@ -37,6 +37,12 @@ class Manager:
             self.rtype = requests.NEXT
         elif self.request[:4] == requests.LIST:
             self.rtype = requests.LIST
+        elif self.request[:5] == requests.PAUSE:
+            self.rtype = requests.PAUSE
+        elif self.request[:5] == requests.RETRY:
+            self.rtype = requests.RETRY
+        elif self.request[:6] == requests.RESUME:
+            self.rtype = requests.RESUME
         self.logger.debug('Request type is "%s"', self.rtype)
         self.logger.debug('Request body is "%s"', self.rbody)
 
@@ -74,6 +80,18 @@ class Manager:
         self.logger.debug('Send stop to player')
         self.player.stop()
 
+    def pause(self):
+        self.logger.debug('Send pause to player')
+        self.player.pause()
+
+    def resume(self):
+        self.logger.debug('Send resume to player')
+        self.player.resume()
+
+    def retry(self):
+        self.logger.debug('Send retry to player')
+        self.player.retry()
+
     def next(self):
         self.logger.debug('Send next to player')
         if self.player:
@@ -98,4 +116,10 @@ class Manager:
             self.next()
         elif self.rtype == requests.LIST:
             self.list()
+        elif self.rtype == requests.PAUSE:
+            self.pause()
+        elif self.rtype == requests.RESUME:
+            self.resume()
+        elif self.rtype == requests.RETRY:
+            self.retry()
         return self.player

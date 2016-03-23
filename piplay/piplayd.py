@@ -75,8 +75,15 @@ class Server:
                             epoll.unregister(self._socket.fileno())
                             epoll.close()
                             break
-                        elif request[:4] in [requests.PLAY, requests.STOP, requests.NEXT, requests.PREVIOUS,
-                                             requests.LIST]:
+                        # Return array with True if request in requests, else return empty array
+                        # and it will interpret as False
+                        elif [True for i in [requests.PLAY,
+                                             requests.STOP,
+                                             requests.NEXT,
+                                             requests.LIST,
+                                             requests.PAUSE,
+                                             requests.RETRY,
+                                             requests.RESUME] if request[:len(i)] == i]:
                             self.logger.info('Process %s request', request[:4])
                             self._manager = manager.Manager() if not self._manager else self._manager
                             self._manager.process(request)

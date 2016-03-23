@@ -31,5 +31,18 @@ class Player:
     def stop(self):
         self.player.stop() if self.player else None
 
+    def resume(self):
+        self.play() if self.player else None
+
+    def pause(self):
+        if self.player and self.player.can_pause():
+            self.player.pause()
+        else:
+            self.logger("Can't pause this track, sorry")
+
+    def retry(self):
+        self.player.stop()
+        self.player.play()
+
 
 
