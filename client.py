@@ -118,5 +118,8 @@ if __name__ == "__main__":
     elif c.args['COMMAND'] == 'play':
         c.play(c.args['--search'])
     else:
-        getattr(c, c.args['COMMAND'])()
+        try:
+            getattr(c, c.args['COMMAND'])()
+        except AttributeError:
+            c.logger.error('Unknown request')
 

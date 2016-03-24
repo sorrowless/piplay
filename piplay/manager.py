@@ -29,22 +29,17 @@ class Manager:
         if self.request[:4] == requests.PLAY:
             self.rtype = requests.PLAY
             if self.request[4:] != self.rbody:
-                self.rbody = self.request[4:]
+                self.rbody = str.strip(self.request[4:])
+                self.logger.debug('Request body is "%s"', self.rbody)
                 self._cachepaths = []
-        elif self.request[:4] == requests.STOP:
-            self.rtype = requests.STOP
-        elif self.request[:4] == requests.NEXT:
-            self.rtype = requests.NEXT
-        elif self.request[:4] == requests.LIST:
-            self.rtype = requests.LIST
-        elif self.request[:5] == requests.PAUSE:
-            self.rtype = requests.PAUSE
-        elif self.request[:5] == requests.RETRY:
-            self.rtype = requests.RETRY
-        elif self.request[:6] == requests.RESUME:
-            self.rtype = requests.RESUME
+        elif [req for req in [requests.STOP,
+                              requests.NEXT,
+                              requests.LIST,
+                              requests.PAUSE,
+                              requests.RETRY,
+                              requests.RESUME] if self.request[:len(req)] == req]:
+            self.rtype = self.request.split(' ')[0]
         self.logger.debug('Request type is "%s"', self.rtype)
-        self.logger.debug('Request body is "%s"', self.rbody)
 
     def fillCache(self):
         if not self._cachepaths:
@@ -104,22 +99,14 @@ class Manager:
             self.logger.info('%s - %s', row['artist'], row['title'])
         return self._cachepaths
 
+    def error(self):
+        self.logger.debug('Unknown request type')
+
     def process(self, request):
         self.logger.debug('Got request: %s', request)
         self.request = request
         self._strip_request()
-        if self.rtype == requests.PLAY:
-            self.play()
-        elif self.rtype == requests.STOP:
-            self.stop()
-        elif self.rtype == requests.NEXT:
-            self.next()
-        elif self.rtype == requests.LIST:
-            self.list()
-        elif self.rtype == requests.PAUSE:
-            self.pause()
-        elif self.rtype == requests.RESUME:
-            self.resume()
-        elif self.rtype == requests.RETRY:
-            self.retry()
+        self.logger.debug('Process a request')
+        getattr(self, self.rtype, self.error)()
+        self.logger.debug('Process done')
         return self.player

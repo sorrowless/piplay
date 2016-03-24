@@ -56,15 +56,23 @@ class Server:
                         reqlist[clientconn.fileno()] = b''
 
                     elif event and select.EPOLLIN:  # If event is on client socket then process it
+                        reqlist[fileno] += connlist[fileno].recv(128)
+                        # When client closes a connection from his side, he will always send
+                        # EPOLLIN with "" data, so we need to process it properly
+                        if not reqlist[fileno].decode():
+                            self.logger.debug('Client closed a connection from his side')
+                            epoll.modify(fileno, 0)
+                            reqlist[fileno] = b''
+                            break
+                        # If it is not the end of data, process it
                         while EOL not in reqlist[fileno]:
-                            self.logger.debug('Got some new data from connection')
-                            reqlist[fileno] += connlist[fileno].recv(128)
-                            self.logger.debug('connection data is %s', reqlist[fileno].decode())
-                            # There are cases when clients send empty request. We should process them properly
-                            if len(reqlist[fileno]) > 256 or not reqlist[fileno].decode():
+                            # We don't want to process too long connections
+                            if len(reqlist[fileno]) > 256:
+                                self.logger.debug('Request is too long')
                                 epoll.modify(fileno, 0)
                                 reqlist[fileno] = b''
                                 break
+
                         request = reqlist[fileno].decode()[:-2]
                         self.logger.debug('Got a request: %s', request)
                         if request[:5] == requests.CLOSE:
@@ -84,11 +92,12 @@ class Server:
                                              requests.PAUSE,
                                              requests.RETRY,
                                              requests.RESUME] if request[:len(i)] == i]:
-                            self.logger.info('Process %s request', request[:4])
+                            self.logger.info('Process %s request', request.split(' ')[0])
                             self._manager = manager.Manager() if not self._manager else self._manager
                             self._manager.process(request)
                             reqlist[fileno] = b''
                         else:
+                            self.logger.debug('Connection data is %s', reqlist[fileno].decode())
                             self.logger.info('Unknown request, pass')
                             reqlist[fileno] = b''
         except ValueError:
