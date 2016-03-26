@@ -77,9 +77,9 @@ def getAudiostream(videourl):
     return audio.url
 
 
-def search(request):
+def search(request, resCountAsked):
     logger.info('Search %s in YouTube', request)
-    results = youtube_search(request, max_results=4)
+    results = youtube_search(request, max_results=resCountAsked)
     logger.debug('Return found results:')
     res = []
 

@@ -21,54 +21,58 @@ class Manager:
         self.request = request
         self.rtype = None
         self.rbody = None
+        self.options = {}
         self.player = None
         self.storages = [storage for storage in pstor.STORAGES]
 
     def _strip_request(self):
-        """Split request to type and body"""
-        if self.request[:4] == requests.PLAY:
-            self.rtype = requests.PLAY
-            if self.request[4:] != self.rbody:
-                self.rbody = str.strip(self.request[4:])
-                self.logger.debug('Request body is "%s"', self.rbody)
-                self._cachepaths = []
-        elif [req for req in [requests.STOP,
-                              requests.NEXT,
-                              requests.LIST,
-                              requests.PAUSE,
-                              requests.RETRY,
-                              requests.RESUME] if self.request[:len(req)] == req]:
-            self.rtype = self.request.split(' ')[0]
+        """Split request to type, body and options"""
+        for request in self.request.splitlines():
+            if request[:4] == requests.PLAY:
+                self.rtype = requests.PLAY
+                if self.request[4:] != self.rbody:  # if we don't try to fetch the same data
+                    self.rbody = str.strip(request[4:])
+                    self.logger.debug('Request body is "%s"', self.rbody)
+                    self._cachepaths = []
+            elif [req for req in [requests.STOP,
+                                  requests.NEXT,
+                                  requests.LIST,
+                                  requests.PAUSE,
+                                  requests.RETRY,
+                                  requests.RESUME] if request[:len(req)] == req]:
+                self.rtype = request.split(' ')[0]
+            else:
+                keyvalue = request.split(' ')
+                self.options[keyvalue[0]] = keyvalue[1]
         self.logger.debug('Request type is "%s"', self.rtype)
 
-    def fillCache(self):
+    def fillCache(self, resCountAsked):
         if not self._cachepaths:
             self.logger.debug('Cache is empty, ask storages to search "%s"', self.rbody)
             for storage in self.storages:
                 self.logger.debug('Try %s', storage.__name__)
-                self._cachepaths = storage.search(self.rbody)
+                self._cachepaths = storage.search(self.rbody, resCountAsked)
                 if self._cachepaths:
                     self.logger.info('Saved %s entries from %s storage to cache',
                                      len(self._cachepaths), storage.__name__)
                     break
+                else:
+                    self.logger.debug('%s return 0 results, will try next storage', storage.__name__)
 
     def play(self):
-        try:
-            self.logger.debug('Try play from cached results')
-            newpath = self._cachepaths.pop(0)
-        except IndexError:
-            self.fillCache()
-            if self._cachepaths:
-                newpath = self._cachepaths.pop(0)
-            else:
-                self.logger.error("Can't fill cache from any storage. Sorry, we can't anything to process then")
-                return 1
         if not self.player:
             self.logger.debug('Initialize new player')
-            self.player = player.Player(newpath['url'])
-        else:
-            self.player.set_path(newpath['url'])
-        self.logger.debug('Send "%s - %s" to player', newpath['artist'], newpath['title'])
+            self.player = player.Player()
+        self.player.set_options(**self.options)
+        self.logger.debug('Try play from cached results')
+        if not self._cachepaths:
+            self.fillCache(self.options.get('count', 10))
+            if not self._cachepaths:
+                self.logger.error("Can't fill cache from any storage. Sorry, we can't anything to process then")
+                return 1
+        self.logger.debug('Send found data to player')
+        self.player.set_path(self._cachepaths)
+        self.player.stop()
         self.player.play()
 
     def stop(self):
@@ -90,8 +94,7 @@ class Manager:
     def next(self):
         self.logger.debug('Send next to player')
         if self.player:
-            self.stop()
-            self.play()
+            self.player.next()
 
     def list(self):
         self.logger.debug('List of play queue from cache:')

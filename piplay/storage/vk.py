@@ -45,13 +45,13 @@ class vkAPI:
 call = vkAPI()
 
 
-def search(request):
+def search(request, resCountAsked):
     results = []
     logger.info('Search %s in VK', request)
     try:
         results = call.api.audio.search(
             q=request,
-            count=10,
+            count=resCountAsked,
             auto_complete=1
         )
         logger.debug('Return found results')

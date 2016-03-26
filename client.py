@@ -2,7 +2,7 @@
 """Play music from some online sources
 
 Usage:
-    client.py [-v...] [-s SEARCH_QUERY] COMMAND
+    client.py [-v...] [-n RESULTS_COUNT] [-s SEARCH_QUERY] COMMAND
     client.py -h
 
 Options:
@@ -10,6 +10,7 @@ Options:
                                     level (like -vvvv)
     -h --help                   show this help
     -s --search SEARCH_QUERY    query to search
+    -n --number RESULTS_COUNT            how much results try to find [default: 10]
 
 Arguments:
     COMMAND  command to process (play, stop, next, list)
@@ -39,11 +40,6 @@ class PiplayClient:
         log level and logging message format
         """
         self.args = docopt(__doc__, version='0.2')
-        # Set logging level. Log level in python logging lowers to 10 points
-        # with each level, so we set it to 10 (maximum) in case of '-v'>5 and
-        # higher it for less '-v's
-        loglevel = (5 - self.args['-v'])*10 if self.args['-v'] < 5 else 10
-
         self.logger = logging.getLogger(__name__)
         handler = logging.FileHandler(plog.FILENAME)
         handler.setLevel(plog.LOGLEVEL)
@@ -71,22 +67,23 @@ class PiplayClient:
         self.connection.send(bytes('close\n\n', 'utf-8'))
         self.connection.close()
 
-    def play(self, query=None):
+    def play(self, query=None, count=10):
         self.logger.debug('Sending play to daemon')
-        self.connection.send(bytes('play {query}\n\n'.format(query=query), 'utf-8'))
+        self.connection.send(bytes('play {query}\ncount {count}\n\n'.format(
+            query=query, count=count), 'utf-8'))
         self.connection.close()
 
-    def pause(self, query=None):
+    def pause(self):
         self.logger.debug('Sending pause to daemon')
         self.connection.send(bytes('pause\n\n', 'utf-8'))
         self.connection.close()
 
-    def resume(self, query=None):
+    def resume(self):
         self.logger.debug('Sending resume to daemon')
         self.connection.send(bytes('resume\n\n', 'utf-8'))
         self.connection.close()
 
-    def retry(self, query=None):
+    def retry(self):
         self.logger.debug('Sending retry to daemon')
         self.connection.send(bytes('retry\n\n', 'utf-8'))
         self.connection.close()
@@ -116,7 +113,7 @@ if __name__ == "__main__":
     elif c.args['COMMAND'] == 'stopdaemon':
         c.stopServer()
     elif c.args['COMMAND'] == 'play':
-        c.play(c.args['--search'])
+        c.play(c.args['--search'], c.args['--number'])
     else:
         try:
             getattr(c, c.args['COMMAND'])()
