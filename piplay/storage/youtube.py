@@ -2,6 +2,7 @@ import configparser
 import logging
 import pafy
 import os
+import sys
 from apiclient.discovery import build
 from piplay.config import logging as plog
 
@@ -39,7 +40,7 @@ YOUTUBE_API_VERSION = "v3"
 logger.debug('Initialize YouTube session')
 try:
     youtube = build(YOUTUBE_API_SERVICE_NAME, YOUTUBE_API_VERSION,
-        developerKey=DEVELOPER_KEY)
+                    developerKey=DEVELOPER_KEY)
 except NameError:
     logger.error("Can't create YouTube API instance")
 

@@ -5,7 +5,6 @@ import time
 from piplay import piplayd
 from piplay import manager
 from unittest.mock import patch
-from hamcrest import *
 
 
 class TestServer:
@@ -48,4 +47,3 @@ class TestServer:
         conn.close()
 
         s_thread.join()
-

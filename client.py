@@ -119,4 +119,3 @@ if __name__ == "__main__":
             getattr(c, c.args['COMMAND'])()
         except AttributeError:
             c.logger.error('Unknown request')
-

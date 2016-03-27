@@ -25,11 +25,11 @@ setup(name='piplay',
       install_requires=required_packages,
 
       package_data={
-        '': ['requirements.txt', 'README.md'],
+          '': ['requirements.txt', 'README.md'],
       },
 
       entry_points={
-        'console_scripts': [
-          'piplay=piplay.player:main',
-        ],
+          'console_scripts': [
+              'piplay=piplay.player:main',
+          ],
       })

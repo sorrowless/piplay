@@ -1,5 +1,4 @@
-import pytest
-from hamcrest import *
+from hamcrest import *  # noqa
 
 from piplay import player
 

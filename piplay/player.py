@@ -6,7 +6,7 @@ logging.basicConfig(
     level=plog.LOGLEVEL,
     format=plog.LOGFORMAT,
     filename=plog.FILENAME
-    )
+)
 
 
 class Player:
@@ -75,6 +75,3 @@ class Player:
     def retry(self):
         self.player.stop()
         self.player.play()
-
-
-

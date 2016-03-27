@@ -1,5 +1,6 @@
 import daemon
-import socket, select
+import socket
+import select
 import logging
 from piplay import requests, manager
 from piplay.config import logging as plog
@@ -8,7 +9,7 @@ logging.basicConfig(
     level=plog.LOGLEVEL,
     format=plog.LOGFORMAT,
     filename=plog.FILENAME
-    )
+)
 
 
 class Server:
@@ -105,7 +106,7 @@ class Server:
         finally:
             self.close()
 
-    def getLogFileHandles(self,logger):
+    def getLogFileHandles(self, logger):
         """ Get a list of filehandle numbers from logger
             to be handed to DaemonContext.files_preserve
         """
