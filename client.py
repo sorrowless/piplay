@@ -103,6 +103,11 @@ class PiplayClient:
         self.connection.send(bytes('list\n\n', 'utf-8'))
         self.connection.close()
 
+    def status(self):
+        self.logger.debug('Sending "status" to daemon')
+        self.connection.send(bytes('status\n\n', 'utf-8'))
+        self.connection.close()
+
 
 if __name__ == "__main__":
     c = PiplayClient()

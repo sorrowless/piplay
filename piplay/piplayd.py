@@ -92,7 +92,8 @@ class Server:
                                              requests.LIST,
                                              requests.PAUSE,
                                              requests.RETRY,
-                                             requests.RESUME] if request[:len(i)] == i]:
+                                             requests.RESUME,
+                                             requests.STATUS] if request[:len(i)] == i]:
                             self.logger.info('Process %s request', request.split(' ')[0])
                             self._manager = manager.Manager() if not self._manager else self._manager
                             self._manager.process(request)

@@ -17,7 +17,9 @@ class Player:
         self.player = None
         try:
             self._list = vlc.MediaList()
+            self._player = vlc.MediaPlayer()
             self.player = vlc.MediaListPlayer()
+            self.player.set_media_player(self._player)
             self.player.set_media_list(self._list)
             self.player.event_manager().event_attach(
                 vlc.EventType.MediaListPlayerNextItemSet,
@@ -64,7 +66,8 @@ class Player:
             self.player.next()
 
     def playInfo(self, *args, **kwargs):
-        self.logger.debug('PlayInfo method, args is %s, kwargs is %s' % (str(args), str(kwargs)))
+        media = self._player.get_media()
+        self.logger.debug('Play %s', media.get_mrl())
 
     def pause(self):
         try:
@@ -73,5 +76,35 @@ class Player:
             self.logger("Can't pause this track, sorry")
 
     def retry(self):
-        self.player.stop()
-        self.player.play()
+        self._player.stop()
+        self._player.play()
+
+    def status(self):
+        """Return status of current track
+
+        :return: Hash with information of current track
+        :rtype: dict
+        """
+        res = {'mrl': '',
+               'length': '',
+               'status': 'not exist'}
+        if not self.player:
+            return res
+
+        media = self._player.get_media()
+        if self.player.get_state() == vlc.State.Playing:
+            res['status'] = 'playing'
+        elif self.player.get_state() == vlc.State.Stopped:
+            res['status'] = 'stopped'
+        elif self.player.get_state() == vlc.State.Paused:
+            res['status'] = 'paused'
+        else:
+            self.logger.debug("We don't know such state. It is %s", str(self.player.get_state()))
+            res['mrl'] = ''
+            res['length'] = 0
+            res['status'] = 'unknown'
+            return res
+        res['mrl'] = media.get_mrl()
+        res['length'] = media.get_duration() // 1000  # in seconds
+        self.logger.debug('Send status to manager')
+        return res

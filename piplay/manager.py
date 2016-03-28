@@ -39,7 +39,8 @@ class Manager:
                                   requests.LIST,
                                   requests.PAUSE,
                                   requests.RETRY,
-                                  requests.RESUME] if request[:len(req)] == req]:
+                                  requests.RESUME,
+                                  requests.STATUS] if request[:len(req)] == req]:
                 self.rtype = request.split(' ')[0]
             else:
                 keyvalue = request.split(' ')
@@ -101,6 +102,24 @@ class Manager:
         for row in self._cachepaths:
             self.logger.info('%s - %s', row['artist'], row['title'])
         return self._cachepaths
+
+    def status(self):
+        self.logger.debug('Asking status from player')
+        if self.player:
+            res = self.player.status()
+        else:
+            self.logger.debug('Current status is: player does not created yet')
+            return 1
+        for row in self._cachepaths:
+            if row['url'] == res['mrl']:
+                res['artist'] = row['artist']
+                res['title'] = row['title']
+        self.logger.info('Current status is: %s', res['status'])
+        self.logger.info('Track length: %d:%d', res['length'] // 60,
+                         res['length'] - res['length'] // 60 * 60)
+        self.logger.info('Artist: %s', res.get('artist', 'Unknown'))
+        self.logger.info('Track title: %s', res.get('title', 'Unknown'))
+        self.logger.info('Track url: %s', res.get('mrl', 'Unknown'))
 
     def error(self):
         self.logger.debug('Unknown request type')
