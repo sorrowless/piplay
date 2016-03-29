@@ -26,7 +26,8 @@ class Player:
                 self.playInfo
             )
         except NameError:
-            self.logger.error("Can't initialize vlc player instance. Missing libvlc in system?",
+            self.logger.error("Can't initialize vlc player instance. Missing \
+                              libvlc in system?",
                               "Try to install VLC player")
 
     def set_path(self, path):
@@ -99,7 +100,8 @@ class Player:
         elif self.player.get_state() == vlc.State.Paused:
             res['status'] = 'paused'
         else:
-            self.logger.debug("We don't know such state. It is %s", str(self.player.get_state()))
+            self.logger.debug("We don't know such state. It is %s",
+                              str(self.player.get_state()))
             res['mrl'] = ''
             res['length'] = 0
             res['status'] = 'unknown'

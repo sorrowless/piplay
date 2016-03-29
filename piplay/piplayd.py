@@ -2,7 +2,8 @@ import daemon
 import socket
 import select
 import logging
-from piplay import requests, manager
+from piplay import requests as rq
+from piplay import manager
 from piplay.config import logging as plog
 
 logging.basicConfig(
@@ -32,7 +33,10 @@ class Server:
         return (self._address, self._port)
 
     def run(self):
-        """Main eventloop which handles incoming requests and send them to manager instance"""
+        """Main eventloop which handles incoming requests
+
+        Handles requests and send them to manager instance.
+        """
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._socket.bind(self.address)
@@ -40,7 +44,8 @@ class Server:
         self._socket.setblocking(0)  # Non-blocking sockets
         self.logger.debug('Start listening on %s:%s', *self.address)
         epoll = select.epoll()
-        epoll.register(self._socket.fileno(), select.EPOLLIN)  # We don't write back, so only reading
+        # We don't write back, so only reading
+        epoll.register(self._socket.fileno(), select.EPOLLIN)
         try:
             EOL = b'\n\n'  # Delimiter for separate requests
             connlist = {}  # Store all incoming connections
@@ -48,20 +53,25 @@ class Server:
             while True:
                 events = epoll.poll(1)
                 for fileno, event in events:
-                    if fileno == self._socket.fileno():  # If event is on main socket then create client socket
+                    # If event is on main socket then create client socket
+                    if fileno == self._socket.fileno():
                         self.logger.debug('New connection recieved')
                         clientconn, address = self._socket.accept()
                         clientconn.setblocking(0)
-                        epoll.register(clientconn.fileno(), select.EPOLLIN)  # Only reading
+                        # Only reading
+                        epoll.register(clientconn.fileno(), select.EPOLLIN)
                         connlist[clientconn.fileno()] = clientconn
                         reqlist[clientconn.fileno()] = b''
 
-                    elif event and select.EPOLLIN:  # If event is on client socket then process it
+                    # If event is on client socket then process it
+                    elif event and select.EPOLLIN:
                         reqlist[fileno] += connlist[fileno].recv(128)
-                        # When client closes a connection from his side, he will always send
-                        # EPOLLIN with "" data, so we need to process it properly
+                        # When client closes a connection from his side, he
+                        # will always send EPOLLIN with "" data, so we need to
+                        # process it properly
                         if not reqlist[fileno].decode():
-                            self.logger.debug('Client closed a connection from his side')
+                            self.logger.debug(
+                                'Client closed a connection from his side')
                             epoll.modify(fileno, 0)
                             reqlist[fileno] = b''
                             break
@@ -76,34 +86,41 @@ class Server:
 
                         request = reqlist[fileno].decode()[:-2]
                         self.logger.debug('Got a request: %s', request)
-                        if request[:5] == requests.CLOSE:
+                        if request[:5] == rq.CLOSE:
                             self.logger.info('Got a close request, exiting')
                             self._manager.stop() if self._manager else None
-                            epoll.modify(fileno, 0)  # Do not listen for next events on this socket
+                            # Do not listen for next events on this socket
+                            epoll.modify(fileno, 0)
                             connlist[fileno].shutdown(socket.SHUT_RDWR)
                             epoll.unregister(self._socket.fileno())
                             epoll.close()
                             break
-                        # Return array with True if request in requests, else return empty array
-                        # and it will interpret as False
-                        elif [True for i in [requests.PLAY,
-                                             requests.STOP,
-                                             requests.NEXT,
-                                             requests.LIST,
-                                             requests.PAUSE,
-                                             requests.RETRY,
-                                             requests.RESUME,
-                                             requests.STATUS] if request[:len(i)] == i]:
-                            self.logger.info('Process %s request', request.split(' ')[0])
-                            self._manager = manager.Manager() if not self._manager else self._manager
+                        # Return array with True if request in requests, else
+                        # return empty array and it will interpret as False
+                        elif [True for i in [rq.PLAY,
+                                             rq.STOP,
+                                             rq.NEXT,
+                                             rq.LIST,
+                                             rq.PAUSE,
+                                             rq.RETRY,
+                                             rq.RESUME,
+                                             rq.STATUS] if
+                              request[:len(i)] == i]:
+
+                            self.logger.info('Process %s request',
+                                             request.split(' ')[0])
+                            if not self._manager:
+                                self._manager = manager.Manager()
                             self._manager.process(request)
                             reqlist[fileno] = b''
                         else:
-                            self.logger.debug('Connection data is %s', reqlist[fileno].decode())
+                            self.logger.debug('Connection data is %s',
+                                              reqlist[fileno].decode())
                             self.logger.info('Unknown request, pass')
                             reqlist[fileno] = b''
         except ValueError:
-            self.logger.info('You try to epoll on closed epoll object. Was server ran in a thread?')
+            self.logger.info('You try to epoll on closed epoll object. Was \
+                             server ran in a thread?')
         finally:
             self.close()
 
@@ -120,7 +137,8 @@ class Server:
 
     def run_detached(self):
         """Run server in detached mode"""
-        with daemon.DaemonContext(files_preserve=self.getLogFileHandles(self.logger)) as d:
+        with daemon.DaemonContext(files_preserve=self.getLogFileHandles(
+                self.logger)) as d:
             self.logger.debug('Run server in daemon mode')
             self._daemon = d
             self.run()

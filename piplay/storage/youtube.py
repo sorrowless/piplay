@@ -28,7 +28,8 @@ try:
     scope = 'id,snippet'
     DEVELOPER_KEY = commonconfig['youtube']['app_key']
 except KeyError:
-    logger.error("Can't load YouTube identify data. YouTube API won't be loaded")
+    logger.error("Can't load YouTube identify data. YouTube API won't be \
+                 loaded")
 except:
     import sys
     logger.error("Unexpected error happened: %s", sys.exc_info())
@@ -58,13 +59,15 @@ def youtube_search(query, max_results=4):
             type='video'
         ).execute()
 
-        # Add each result to the appropriate list, and then display the lists of
-        # matching videos, channels, and playlists.
+        # Add each result to the appropriate list, and then display the lists
+        # of matching videos, channels, and playlists.
         for search_result in search_response.get("items", []):
             if search_result["id"]["kind"] == "youtube#video":
-                videos[search_result["id"]["videoId"]] = search_result["snippet"]["title"]
+                videos[search_result["id"]["videoId"]] = \
+                    search_result["snippet"]["title"]
     except NameError:
-        logger.error("Can't create YouTube API call. Uninitialized API instance?")
+        logger.error(
+            "Can't create YouTube API call. Uninitialized API instance?")
 
     return videos
 

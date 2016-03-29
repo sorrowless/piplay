@@ -36,7 +36,11 @@ class vkAPI:
             user_password = commonconfig['vk']['user_password']
             scope = 'offline, audio'
             logger.debug('Initialize VK session')
-            session = vk.AuthSession(app_id=app_id, user_login=user_login, user_password=user_password, scope=scope)
+            session = vk.AuthSession(
+                app_id=app_id,
+                user_login=user_login,
+                user_password=user_password,
+                scope=scope)
             logger.debug('Initialize VK api')
             self._api = vk.API(session)
         except KeyError:

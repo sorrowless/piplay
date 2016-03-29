@@ -6,11 +6,11 @@ Usage:
     client.py -h
 
 Options:
-    -v                          verbosity level. Use more than one time to raise
-                                    level (like -vvvv)
+    -v                          verbosity level. Use more than one time to
+                                    raise level (like -vvvv)
     -h --help                   show this help
     -s --search SEARCH_QUERY    query to search
-    -n --number RESULTS_COUNT            how much results try to find [default: 10]
+    -n --number RESULTS_COUNT   how much results try to find [default: 10]
 
 Arguments:
     COMMAND  command to process (play, stop, next, list)
@@ -48,7 +48,8 @@ class PiplayClient:
         self.logger.addHandler(handler)
         # We need next trick with list comprehension cause self.args stores
         # some '\n' symbols, so it badly formatted in logs by default
-        self.logger.debug('Passed arguments is: %s', {k: v for k, v in self.args.items()})
+        self.logger.debug(
+            'Passed arguments is: %s', {k: v for k, v in self.args.items()})
 
     def runServer(self):
         from piplay import piplayd
@@ -109,7 +110,7 @@ class PiplayClient:
         self.connection.close()
 
 
-if __name__ == "__main__":
+def main():
     c = PiplayClient()
     if c.args['COMMAND'] == 'rundaemon':
         c.runServer()
@@ -124,3 +125,6 @@ if __name__ == "__main__":
             getattr(c, c.args['COMMAND'])()
         except AttributeError:
             c.logger.error('Unknown request')
+
+if __name__ == "__main__":
+    main()

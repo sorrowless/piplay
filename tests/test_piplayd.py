@@ -22,7 +22,9 @@ class TestServer:
         s_thread = threading.Thread(target=server.run)
         s_thread.start()
 
-        time.sleep(0.1)  # we need this sleep - other way server has not enough time to start and fails on connect
+        # we need this sleep - other way server has not enough time to start
+        # and fails on connect
+        time.sleep(0.1)
         conn = socket.socket()
         conn.connect(server.address)
         conn.send(b'close\n\n')
@@ -38,7 +40,9 @@ class TestServer:
         s_thread = threading.Thread(target=server.run)
         s_thread.start()
 
-        time.sleep(0.1)  # we need this sleep - other way server has not enough time to start and fails on connect
+        # we need this sleep - other way server has not enough time to start
+        # and fails on connect
+        time.sleep(0.1)
         conn = socket.socket()
         conn.connect(server.address)
 

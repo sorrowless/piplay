@@ -1,5 +1,6 @@
 import logging
-from piplay import requests, player
+from piplay import requests as rq
+from piplay import player
 from piplay.config import logging as plog
 from piplay.config import storage as pstor
 
@@ -28,19 +29,20 @@ class Manager:
     def _strip_request(self):
         """Split request to type, body and options"""
         for request in self.request.splitlines():
-            if request[:4] == requests.PLAY:
-                self.rtype = requests.PLAY
-                if self.request[4:] != self.rbody:  # if we don't try to fetch the same data
+            if request[:4] == rq.PLAY:
+                self.rtype = rq.PLAY
+                # if we don't try to fetch the same data
+                if self.request[4:] != self.rbody:
                     self.rbody = str.strip(request[4:])
                     self.logger.debug('Request body is "%s"', self.rbody)
                     self._cachepaths = []
-            elif [req for req in [requests.STOP,
-                                  requests.NEXT,
-                                  requests.LIST,
-                                  requests.PAUSE,
-                                  requests.RETRY,
-                                  requests.RESUME,
-                                  requests.STATUS] if request[:len(req)] == req]:
+            elif [req for req in [rq.STOP,
+                                  rq.NEXT,
+                                  rq.LIST,
+                                  rq.PAUSE,
+                                  rq.RETRY,
+                                  rq.RESUME,
+                                  rq.STATUS] if request[:len(req)] == req]:
                 self.rtype = request.split(' ')[0]
             else:
                 keyvalue = request.split(' ')
@@ -49,16 +51,20 @@ class Manager:
 
     def fillCache(self, resCountAsked):
         if not self._cachepaths:
-            self.logger.debug('Cache is empty, ask storages to search "%s"', self.rbody)
+            self.logger.debug('Cache is empty, ask storages to search "%s"',
+                              self.rbody)
             for storage in self.storages:
                 self.logger.debug('Try %s', storage.__name__)
                 self._cachepaths = storage.search(self.rbody, resCountAsked)
                 if self._cachepaths:
-                    self.logger.info('Saved %s entries from %s storage to cache',
-                                     len(self._cachepaths), storage.__name__)
+                    self.logger.info(
+                        'Saved %s entries from %s storage to cache',
+                        len(self._cachepaths), storage.__name__)
                     break
                 else:
-                    self.logger.debug('%s return 0 results, will try next storage', storage.__name__)
+                    self.logger.debug(
+                        '%s return 0 results, will try next storage',
+                        storage.__name__)
 
     def play(self):
         if not self.player:
@@ -69,7 +75,8 @@ class Manager:
         if not self._cachepaths:
             self.fillCache(self.options.get('count', 10))
             if not self._cachepaths:
-                self.logger.error("Can't fill cache from any storage. Sorry, we can't anything to process then")
+                self.logger.error("Can't fill cache from any storage. Sorry, \
+                                  we can't anything to process then")
                 return 1
         self.logger.debug('Send found data to player')
         self.player.set_path(self._cachepaths)

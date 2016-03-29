@@ -30,6 +30,6 @@ setup(name='piplay',
 
       entry_points={
           'console_scripts': [
-              'piplay=piplay.player:main',
+              'piplay=piplay.client:main',
           ],
       })
