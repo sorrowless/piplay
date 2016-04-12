@@ -57,6 +57,27 @@ application key for YouTube, place it into config file like this:
 
 After this piplay will have an access to YouTube db.
 
+*Common settings*
+You can change some other settings:
+
+* notifications: create a next key in 'common' section:
+
+```
+
+  [common]
+  notifications = true
+
+```
+
+  to get working notifications. You need python bindings for DBUS to see them,
+  btw - and you usually need to install this package manually, as it is not
+  pure Python one and doesn't shipped by pip. In different systems it can be
+  named different way, there is examples for most popular distributes:
+
+  1. Arch: python-dbus
+  2. Ubuntu: python3-dbus
+
+
 **Roadmap**:
 
 * add more storages: local, torrent, pleer.com and so on

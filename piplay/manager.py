@@ -1,8 +1,10 @@
 import logging
+
 from piplay import requests as rq
 from piplay import player
 from piplay.config import logging as plog
 from piplay.config import storage as pstor
+from piplay.notifications import Notification
 
 logging.basicConfig(
     level=plog.LOGLEVEL,
@@ -25,6 +27,7 @@ class Manager:
         self.options = {}
         self.player = None
         self.storages = [storage for storage in pstor.STORAGES]
+        self.notifier = Notification()
 
     def _strip_request(self):
         """Split request to type, body and options"""
@@ -69,7 +72,7 @@ class Manager:
     def play(self):
         if not self.player:
             self.logger.debug('Initialize new player')
-            self.player = player.Player()
+            self.player = player.Player(statusCallback=self.status)
         self.player.set_options(**self.options)
         self.logger.debug('Try play from cached results')
         if not self._cachepaths:
@@ -110,7 +113,7 @@ class Manager:
             self.logger.info('%s - %s', row['artist'], row['title'])
         return self._cachepaths
 
-    def status(self):
+    def status(self, showLength=True):
         self.logger.debug('Asking status from player')
         if self.player:
             res = self.player.status()
@@ -121,15 +124,24 @@ class Manager:
             if row['url'] == res['mrl']:
                 res['artist'] = row['artist']
                 res['title'] = row['title']
-        self.logger.info('Current status is: %s', res['status'])
-        self.logger.info('Track length: %d:%d', res['length'] // 60,
-                         res['length'] - res['length'] // 60 * 60)
-        self.logger.info('Artist: %s', res.get('artist', 'Unknown'))
-        self.logger.info('Track title: %s', res.get('title', 'Unknown'))
+        status = res['status']
+        length = '%d:%d' % (res['length'] // 60,
+                            res['length'] - res['length'] // 60 * 60)
+        artist = res.get('artist', 'Unknown')
+        title = res.get('title', 'Unknown')
+        self.logger.info('Current status is: %s', status)
+        self.logger.info('Track length: %s', length) if showLength else False
+        self.logger.info('Artist: %s', artist)
+        self.logger.info('Track title: %s', title)
         self.logger.info('Track url: %s', res.get('mrl', 'Unknown'))
+        if showLength:
+            self.notify(status, '%s - %s (%s)' % (artist, title, length))
+        else:
+            self.notify(status, '%s - %s' % (artist, title))
 
     def error(self):
         self.logger.debug('Unknown request type')
+        self.notify('Error', 'Unknown request type')
 
     def process(self, request):
         self.logger.debug('Got request: %s', request)
@@ -139,3 +151,8 @@ class Manager:
         getattr(self, self.rtype, self.error)()
         self.logger.debug('Process done')
         return self.player
+
+    def notify(self, summary, message, icon=''):
+        self.logger.debug('Prepare notification message')
+        self.notifier.setInfo(summary, message, icon)
+        self.notifier.show()

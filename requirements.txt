@@ -7,6 +7,7 @@ lockfile==0.12.2
 logutils==0.3.3
 Mako==1.0.4
 MarkupSafe==0.23
+notify2==0.3
 oauth2client==2.0.1
 pafy==0.5.0
 pecan==1.0.5

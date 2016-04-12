@@ -10,11 +10,12 @@ logging.basicConfig(
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, statusCallback=None):
         self.logger = logging.getLogger(__name__)
         self.path = None
         self.pathdict = {}
         self.player = None
+        self.trackstatus = statusCallback  # We want to notify only from Manager
         try:
             self._list = vlc.MediaList()
             self._player = vlc.MediaPlayer()
@@ -69,6 +70,7 @@ class Player:
     def playInfo(self, *args, **kwargs):
         media = self._player.get_media()
         self.logger.debug('Play %s', media.get_mrl())
+        self.trackstatus(showLength=False)
 
     def pause(self):
         try:
@@ -88,23 +90,25 @@ class Player:
         """
         res = {'mrl': '',
                'length': '',
-               'status': 'not exist'}
+               'status': 'Not exist'}
         if not self.player:
             return res
 
         media = self._player.get_media()
         if self.player.get_state() == vlc.State.Playing:
-            res['status'] = 'playing'
+            res['status'] = 'Playing'
         elif self.player.get_state() == vlc.State.Stopped:
-            res['status'] = 'stopped'
+            res['status'] = 'Stopped'
         elif self.player.get_state() == vlc.State.Paused:
-            res['status'] = 'paused'
+            res['status'] = 'Paused'
+        elif self.player.get_state() == vlc.State.Opening:
+            res['status'] = 'Start playing'
         else:
             self.logger.debug("We don't know such state. It is %s",
                               str(self.player.get_state()))
             res['mrl'] = ''
             res['length'] = 0
-            res['status'] = 'unknown'
+            res['status'] = 'Unknown'
             return res
         res['mrl'] = media.get_mrl()
         res['length'] = media.get_duration() // 1000  # in seconds
